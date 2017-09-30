@@ -33,6 +33,19 @@ const scrape = async (page, {username, password}) => {
   await page.goto(detailUrl);
   await page.waitForSelector('#foot');
 
+  await page.evaluate(() => {
+    const e = document.querySelector('table .txt-notes');
+    let [year, month, day] = e.textContent.match(/\d+/g);
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+    document.querySelector('[name=SEARCH_FROM_YEAR]').value = year;
+    document.querySelector('[name=SEARCH_FROM_MONTH]').value = month;
+    document.querySelector('[name=SEARCH_FROM_DAY]').value = day;
+  });
+  await page.click('.btnMain2S > a');
+  await page.waitForNavigation();
+  await page.waitForSelector('#foot');
+
   const {accountInfo, transactions} = await page.evaluate(() => {
     const tbodies = document.querySelectorAll('table>tbody');
 
@@ -77,7 +90,7 @@ const scrape = async (page, {username, password}) => {
   return {accountInfo, transactions};
 };
 
-module.exports = async({username, password}) => {
+module.exports = async ({username, password}) => {
   if (!username || !password) {
     throw new Error('both username and password must not be empty');
   }
